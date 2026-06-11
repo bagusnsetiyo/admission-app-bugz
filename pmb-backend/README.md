@@ -1,59 +1,203 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PMB Backend API — Laravel 12
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+RESTful API server for university admission management system (PMB 2025).
 
-## About Laravel
+## 🚀 Quick Start
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+# Install dependencies
+composer install
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Setup environment
+cp .env.example .env
+php artisan key:generate
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+# Setup database (SQLite for dev)
+touch database/database.sqlite
+php artisan migrate --seed
 
-## Learning Laravel
+# Start dev server
+php artisan serve --port=8000
+# → http://localhost:8000/api
+```
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+## 📚 API Endpoints
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### Auth (Sanctum)
+```bash
+POST   /api/auth/login          # Get token: {username, password}
+POST   /api/auth/logout         # Revoke token (requires Bearer token)
+```
 
-## Laravel Sponsors
+### Applicants
+```bash
+POST   /api/pendaftar           # Create (public): {nama, nomor_hp, email, asal_sekolah, prodi, jalur}
+GET    /api/pendaftar           # List all (admin only)
+GET    /api/pendaftar/{nomor}   # Get by number (public): e.g. PMB-2025-1001
+PATCH  /api/pendaftar/{id}/status  # Update status (admin only): {status}
+POST   /api/pendaftar/{nomor}/heregistrasi  # Confirm enrollment (public)
+```
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### Statistics & Export
+```bash
+GET    /api/statistik           # Stats (admin only): per_prodi, per_jalur, per_status
+GET    /api/pendaftar/export/csv  # Download CSV (admin only)
+```
 
-### Premium Partners
+## 🔐 Admin Credentials
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+| Field | Value |
+|-------|-------|
+| Username | `admin` |
+| Email | `admin@pmb.local` |
+| Password | `pmb2025` |
 
-## Contributing
+## 📊 Database
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+**Dev**: SQLite (`database/database.sqlite`)  
+**Prod**: PostgreSQL 17+
 
-## Code of Conduct
+### Tables
+- `users` — Admin accounts
+- `pendaftars` — Student applications
+- `personal_access_tokens` — Sanctum tokens
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Status Values
+- `Menunggu` (pending)
+- `Lolos Seleksi` (accepted)
+- `Tidak Lolos` (rejected)
 
-## Security Vulnerabilities
+## 📁 Structure
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```
+app/
+├── Http/
+│   ├── Controllers/Api/
+│   │   ├── PendaftarController.php
+│   │   └── AdminAuthController.php
+│   └── Requests/
+│       ├── StorePendaftarRequest.php
+│       └── UpdateStatusRequest.php
+├── Models/
+│   ├── User.php (HasApiTokens)
+│   └── Pendaftar.php
+│
+database/
+├── migrations/
+│   ├── ...create_users_table
+│   ├── ...create_pendaftars_table
+│   └── ...add_heregistrasi_to_pendaftars
+└── seeders/
+    ├── AdminSeeder.php
+    └── PendaftarSeeder.php
 
-## License
+routes/
+└── api.php (9 endpoints)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+config/
+└── cors.php (allow localhost:5173)
+```
+
+## 🔧 Commands
+
+```bash
+# Database
+php artisan migrate              # Run migrations
+php artisan migrate:fresh        # Reset database
+php artisan db:seed              # Seed dummy data
+php artisan db:seed --class=AdminSeeder  # Seed admin only
+
+# Development
+php artisan serve                # Start server (port 8000)
+php artisan serve --port=8001    # Custom port
+php artisan tinker               # Interactive shell
+
+# Generate
+php artisan make:model Model
+php artisan make:controller Api/ControllerName
+php artisan make:request StoreRequest
+```
+
+## 🧪 Testing Endpoints
+
+### Login
+```bash
+curl -X POST http://localhost:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username":"admin","password":"pmb2025"}'
+```
+
+### Get Stats (with token)
+```bash
+TOKEN="your_token_from_login"
+curl -X GET http://localhost:8000/api/statistik \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+### Register Student (public)
+```bash
+curl -X POST http://localhost:8000/api/pendaftar \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nama": "John Doe",
+    "nomor_hp": "081234567890",
+    "email": "john@example.com",
+    "asal_sekolah": "SMA Negeri 1",
+    "prodi": "Teknik Informatika",
+    "jalur": "SNBT"
+  }'
+```
+
+## 🌍 CORS Configuration
+
+File: `config/cors.php`
+
+```php
+'allowed_origins' => ['http://localhost:5173'],
+```
+
+Update for production:
+```php
+'allowed_origins' => [
+    'https://yourdomain.com',
+    'https://www.yourdomain.com',
+],
+```
+
+## 📦 Dependencies
+
+- Laravel 12.x
+- PHP 8.3+
+- Laravel Sanctum (auth)
+- SQLite or PostgreSQL
+
+See `composer.json` for full list.
+
+## 🚢 Production Deployment
+
+1. Update `.env` with PostgreSQL credentials
+2. Run migrations: `php artisan migrate --env=production`
+3. Seed admin: `php artisan db:seed --class=AdminSeeder`
+4. Set `APP_ENV=production` and `APP_DEBUG=false`
+5. Deploy with web server (Apache/Nginx) + PHP-FPM
+
+## 🐛 Troubleshooting
+
+**Port already in use:**
+```bash
+lsof -i :8000 && kill -9 <PID>
+```
+
+**Migration errors:**
+```bash
+php artisan migrate:fresh --seed  # Reset everything
+```
+
+**Token not working:**
+- Check `Authorization: Bearer {token}` header
+- Verify token hasn't expired
+- Reseed admin if needed
+
+---
+
+*Part of PMB 2025 admission system — Built with GitHub Copilot AI agent*
