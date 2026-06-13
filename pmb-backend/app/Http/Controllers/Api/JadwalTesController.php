@@ -5,10 +5,12 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreJadwalTesRequest;
 use App\Http\Requests\UpdateJadwalTesRequest;
+use App\Http\Requests\VerifyJadwalRequest;
 use App\Models\JadwalTes;
 use App\Models\Pendaftar;
 use App\Models\PenugasanJadwal;
 use App\Services\JadwalHubService;
+use App\Services\PendaftarVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -17,7 +19,10 @@ use Illuminate\Http\Request;
  */
 class JadwalTesController extends Controller
 {
-    public function __construct(private JadwalHubService $service) {}
+    public function __construct(
+        private JadwalHubService $service,
+        private PendaftarVerificationService $verification,
+    ) {}
 
     /**
      * GET /api/jadwal-tes — daftar semua slot (admin)
@@ -139,13 +144,17 @@ class JadwalTesController extends Controller
     }
 
     /**
-     * GET /api/pendaftar/{nomor}/jadwal — jadwal milik peserta (publik)
+     * POST /api/pendaftar/{nomor}/jadwal — jadwal milik peserta (wajib verifikasi HP)
      */
-    public function byNomorPendaftar(string $nomorPendaftaran): JsonResponse
+    public function byNomorPendaftar(VerifyJadwalRequest $request, string $nomorPendaftaran): JsonResponse
     {
-        $pendaftar = Pendaftar::where('nomor_pendaftaran', $nomorPendaftaran)->first();
+        $pendaftar = $this->verification->findVerified($nomorPendaftaran, $request->verifikasi_hp);
+
         if (!$pendaftar) {
-            return response()->json(['success' => false, 'message' => 'Nomor pendaftaran tidak ditemukan'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => PendaftarVerificationService::GENERIC_FAIL_MESSAGE,
+            ], 404);
         }
 
         $list = PenugasanJadwal::with(['jadwalTes', 'permintaanReschedule' => fn ($q) => $q->latest()])

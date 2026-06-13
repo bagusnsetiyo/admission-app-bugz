@@ -17,7 +17,8 @@ class StoreRescheduleRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'nomor_pendaftaran'    => ['required', 'string'],
+            'nomor_pendaftaran'    => ['required', 'string', 'regex:/^PMB-[0-9]{4}-[0-9]{4}$/'],
+            'verifikasi_hp'        => ['required', 'string', 'regex:/^\d{4,13}$/'],
             'penugasan_jadwal_id'  => ['required', 'integer', 'exists:penugasan_jadwal,id'],
             'jadwal_tes_baru_id'   => ['required', 'integer', 'exists:jadwal_tes,id'],
             'alasan'               => ['required', 'string', 'min:20'],

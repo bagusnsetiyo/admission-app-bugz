@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\CekStatusRequest;
+use App\Http\Requests\HeregistrasiRequest;
 use App\Http\Requests\StorePendaftarRequest;
 use App\Http\Requests\UpdateStatusRequest;
 use App\Models\Pendaftar;
+use App\Services\PendaftarVerificationService;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Carbon;
@@ -15,6 +18,7 @@ use Illuminate\Support\Carbon;
  */
 class PendaftarController extends Controller
 {
+    public function __construct(private PendaftarVerificationService $verification) {}
     /**
      * Menampilkan semua data pendaftar
      * GET /api/pendaftar
@@ -70,23 +74,26 @@ class PendaftarController extends Controller
     }
 
     /**
-     * Menampilkan satu pendaftar berdasarkan nomor pendaftaran
-     * GET /api/pendaftar/{nomorPendaftaran}
+     * Cek status pendaftar dengan verifikasi nomor HP
+     * POST /api/pendaftar/cek-status
      */
-    public function show(string $nomorPendaftaran): JsonResponse
+    public function cekStatus(CekStatusRequest $request): JsonResponse
     {
-        $pendaftar = Pendaftar::where('nomor_pendaftaran', $nomorPendaftaran)->first();
+        $pendaftar = $this->verification->findVerified(
+            $request->nomor_pendaftaran,
+            $request->verifikasi_hp
+        );
 
         if (!$pendaftar) {
             return response()->json([
                 'success' => false,
-                'message' => 'Nomor pendaftaran tidak ditemukan',
+                'message' => PendaftarVerificationService::GENERIC_FAIL_MESSAGE,
             ], 404);
         }
 
         return response()->json([
             'success' => true,
-            'data'    => $pendaftar,
+            'data'    => $this->verification->toPublicArray($pendaftar),
         ]);
     }
 
@@ -215,17 +222,17 @@ class PendaftarController extends Controller
     }
 
     /**
-     * Heregistrasi oleh mahasiswa yang lolos seleksi
+     * Heregistrasi oleh mahasiswa yang lolos seleksi (wajib verifikasi HP)
      * POST /api/pendaftar/{nomorPendaftaran}/heregistrasi
      */
-    public function heregistrasi(string $nomorPendaftaran): JsonResponse
+    public function heregistrasi(HeregistrasiRequest $request, string $nomorPendaftaran): JsonResponse
     {
-        $pendaftar = Pendaftar::where('nomor_pendaftaran', $nomorPendaftaran)->first();
+        $pendaftar = $this->verification->findVerified($nomorPendaftaran, $request->verifikasi_hp);
 
         if (!$pendaftar) {
             return response()->json([
                 'success' => false,
-                'message' => 'Nomor pendaftaran tidak ditemukan',
+                'message' => PendaftarVerificationService::GENERIC_FAIL_MESSAGE,
             ], 404);
         }
 
@@ -248,7 +255,7 @@ class PendaftarController extends Controller
         return response()->json([
             'success' => true,
             'message' => 'Heregistrasi berhasil! Selamat datang di keluarga besar kampus kami.',
-            'data'    => $pendaftar->fresh(),
+            'data'    => $this->verification->toPublicArray($pendaftar->fresh()),
         ]);
     }
 }

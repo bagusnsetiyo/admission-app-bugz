@@ -46,8 +46,8 @@ npm run dev
 ## Fitur Lama — Konfirmasi Normal
 
 - Pendaftaran online → ✅ tidak diubah
-- Cek status by nomor → ✅ tidak diubah
-- Heregistrasi → ✅ tidak diubah
+- Cek status by nomor + **4 digit terakhir HP** → ✅ verifikasi kepemilikan
+- Heregistrasi → ✅ wajib verifikasi HP
 - Admin login/logout Sanctum → ✅ tidak diubah
 - Tabel pendaftar + filter → ✅ tidak diubah
 - Statistik per prodi/jalur → ✅ tidak diubah

@@ -21,7 +21,7 @@ class KehadiranController extends Controller
     public function checkin(CheckinRequest $request): JsonResponse
     {
         $expectedPin = env('OPERATOR_PIN', 'pmblapangan2025');
-        if ($request->operator_pin !== $expectedPin) {
+        if (!hash_equals((string) $expectedPin, (string) $request->operator_pin)) {
             return response()->json(['success' => false, 'message' => 'PIN operator tidak valid'], 403);
         }
 

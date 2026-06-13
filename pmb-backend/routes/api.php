@@ -16,22 +16,27 @@ use Illuminate\Support\Facades\Route;
 
 $nomorRegex = 'PMB-[0-9]{4}-[0-9]{4}';
 
-// --- Auth ---
-Route::post('/auth/login', [AdminAuthController::class, 'login']);
+// --- Auth (rate limited) ---
+Route::post('/auth/login', [AdminAuthController::class, 'login'])
+    ->middleware('throttle:5,1');
 
-// --- Publik (tidak butuh auth) ---
-Route::post('/pendaftar', [PendaftarController::class, 'store']);
-Route::get('/pendaftar/{nomorPendaftaran}', [PendaftarController::class, 'show'])
-    ->where('nomorPendaftaran', $nomorRegex);
-Route::post('/pendaftar/{nomorPendaftaran}/heregistrasi', [PendaftarController::class, 'heregistrasi'])
-    ->where('nomorPendaftaran', $nomorRegex);
+// --- Publik dengan verifikasi HP (rate limited) ---
+Route::middleware('throttle:20,1')->group(function () use ($nomorRegex) {
+    Route::post('/pendaftar', [PendaftarController::class, 'store']);
+    Route::post('/pendaftar/cek-status', [PendaftarController::class, 'cekStatus']);
 
-// --- JadwalHub publik ---
-Route::get('/pendaftar/{nomorPendaftaran}/jadwal', [JadwalTesController::class, 'byNomorPendaftar'])
-    ->where('nomorPendaftaran', $nomorRegex);
-Route::get('/jadwal-tes/tersedia', [JadwalTesController::class, 'tersedia']);
-Route::post('/reschedule', [RescheduleController::class, 'store']);
-Route::post('/kehadiran/checkin', [KehadiranController::class, 'checkin']);
+    Route::post('/pendaftar/{nomorPendaftaran}/jadwal', [JadwalTesController::class, 'byNomorPendaftar'])
+        ->where('nomorPendaftaran', $nomorRegex);
+    Route::post('/pendaftar/{nomorPendaftaran}/heregistrasi', [PendaftarController::class, 'heregistrasi'])
+        ->where('nomorPendaftaran', $nomorRegex);
+
+    Route::get('/jadwal-tes/tersedia', [JadwalTesController::class, 'tersedia']);
+    Route::post('/reschedule', [RescheduleController::class, 'store']);
+});
+
+// --- Check-in operator (rate limited ketat) ---
+Route::post('/kehadiran/checkin', [KehadiranController::class, 'checkin'])
+    ->middleware('throttle:10,1');
 
 // --- Admin (butuh Sanctum token) ---
 Route::middleware('auth:sanctum')->group(function () {

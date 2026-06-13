@@ -2,7 +2,6 @@ import { useState, useEffect, useRef } from 'react';
 import { Html5QrcodeScanner } from 'html5-qrcode';
 import Button from '../components/ui/Button';
 import { kehadiranApi } from '../utils/api';
-import { OPERATOR_PIN_DEFAULT } from '../constants';
 
 /**
  * Operator — halaman scan QR check-in untuk panitia lapangan
@@ -93,9 +92,6 @@ const Operator = () => {
               Masuk
             </Button>
           </form>
-          <p className="text-xs text-slate-400 text-center">
-            Default demo: {OPERATOR_PIN_DEFAULT}
-          </p>
           <a href="/" className="block text-center text-xs text-blue-600 hover:underline">
             ← Kembali ke Beranda
           </a>

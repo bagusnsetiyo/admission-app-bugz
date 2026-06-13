@@ -8,7 +8,7 @@ import RescheduleForm from './RescheduleForm';
 /**
  * JadwalPanel — kartu jadwal tes/wawancara peserta dengan QR tiket
  */
-const JadwalPanel = ({ nomor }) => {
+const JadwalPanel = ({ nomor, verifikasiHp }) => {
   const [jadwalList, setJadwalList] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -18,7 +18,7 @@ const JadwalPanel = ({ nomor }) => {
     setLoading(true);
     setError('');
     try {
-      const res = await jadwalApi.getByNomor(nomor);
+      const res = await jadwalApi.getByNomor(nomor, verifikasiHp);
       setJadwalList(res.data);
     } catch (err) {
       setError(err.message || 'Gagal memuat jadwal');
@@ -29,8 +29,8 @@ const JadwalPanel = ({ nomor }) => {
   };
 
   useEffect(() => {
-    if (nomor) fetchJadwal();
-  }, [nomor]);
+    if (nomor && verifikasiHp) fetchJadwal();
+  }, [nomor, verifikasiHp]);
 
   if (!nomor) return null;
 
@@ -153,6 +153,7 @@ const JadwalPanel = ({ nomor }) => {
       {rescheduleTarget && (
         <RescheduleForm
           nomor={nomor}
+          verifikasiHp={verifikasiHp}
           penugasan={rescheduleTarget}
           onClose={() => setRescheduleTarget(null)}
           onSuccess={() => {

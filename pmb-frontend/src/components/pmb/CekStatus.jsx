@@ -6,10 +6,11 @@ import { pendaftarApi } from '../../utils/api';
 
 /**
  * CekStatus — komponen untuk calon mahasiswa mengecek status pendaftaran
- * Jika status Lolos Seleksi, tampilkan tombol heregistrasi
+ * Memerlukan verifikasi 4 digit terakhir nomor HP untuk mencegah enumerasi data
  */
 const CekStatus = () => {
   const [nomor, setNomor] = useState('');
+  const [verifikasiHp, setVerifikasiHp] = useState('');
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -18,16 +19,22 @@ const CekStatus = () => {
 
   const handleCek = async (e) => {
     e.preventDefault();
-    if (!nomor.trim()) return;
+    if (!nomor.trim() || !verifikasiHp.trim()) return;
     setLoading(true);
     setError('');
     setResult(null);
     setHeregSuccess('');
     try {
-      const res = await pendaftarApi.getByNomor(nomor.trim().toUpperCase());
+      const res = await pendaftarApi.cekStatus(
+        nomor.trim().toUpperCase(),
+        verifikasiHp.trim()
+      );
       setResult(res.data);
     } catch (err) {
-      setError(err.message || 'Nomor pendaftaran tidak ditemukan. Pastikan format benar (PMB-2025-XXXX).');
+      setError(
+        err.message ||
+          'Nomor pendaftaran atau verifikasi tidak valid. Periksa kembali data Anda.'
+      );
     } finally {
       setLoading(false);
     }
@@ -36,7 +43,10 @@ const CekStatus = () => {
   const handleHeregistrasi = async () => {
     setHeregLoading(true);
     try {
-      const res = await pendaftarApi.heregistrasi(result.nomor_pendaftaran);
+      const res = await pendaftarApi.heregistrasi(
+        result.nomor_pendaftaran,
+        verifikasiHp.trim()
+      );
       setResult(res.data);
       setHeregSuccess(res.message);
     } catch (err) {
@@ -57,9 +67,9 @@ const CekStatus = () => {
   return (
     <div className="space-y-4">
       <p className="text-sm text-slate-500">
-        Masukkan nomor pendaftaran yang Anda terima setelah mendaftar.
+        Masukkan nomor pendaftaran dan 4 digit terakhir nomor HP Anda untuk verifikasi.
       </p>
-      <form onSubmit={handleCek} className="flex gap-2">
+      <form onSubmit={handleCek} className="space-y-2">
         <input
           type="text"
           value={nomor}
@@ -69,10 +79,23 @@ const CekStatus = () => {
             setResult(null);
           }}
           placeholder="Contoh: PMB-2025-1234"
-          className="flex-1 px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] text-sm"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] text-sm"
         />
-        <Button type="submit" variant="primary" disabled={loading}>
-          {loading ? 'Mencari...' : 'Cek'}
+        <input
+          type="text"
+          inputMode="numeric"
+          maxLength={4}
+          value={verifikasiHp}
+          onChange={(e) => {
+            setVerifikasiHp(e.target.value.replace(/\D/g, ''));
+            setError('');
+            setResult(null);
+          }}
+          placeholder="4 digit terakhir No. HP"
+          className="w-full px-3 py-2.5 border border-slate-200 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 min-h-[44px] text-sm"
+        />
+        <Button type="submit" variant="primary" disabled={loading} className="w-full">
+          {loading ? 'Mencari...' : 'Cek Status'}
         </Button>
       </form>
 
@@ -100,6 +123,10 @@ const CekStatus = () => {
             <div>
               <p className="text-xs text-slate-400 mb-0.5">Jalur</p>
               <p className="font-medium text-slate-800">{result.jalur}</p>
+            </div>
+            <div>
+              <p className="text-xs text-slate-400 mb-0.5">Nomor HP</p>
+              <p className="font-medium text-slate-800">{result.nomor_hp_masked}</p>
             </div>
             <div>
               <p className="text-xs text-slate-400 mb-0.5">Tanggal Daftar</p>
@@ -145,7 +172,7 @@ const CekStatus = () => {
             </p>
           )}
 
-          <JadwalPanel nomor={result.nomor_pendaftaran} />
+          <JadwalPanel nomor={result.nomor_pendaftaran} verifikasiHp={verifikasiHp.trim()} />
         </div>
       )}
     </div>

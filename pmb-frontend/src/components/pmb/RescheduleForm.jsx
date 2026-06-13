@@ -6,7 +6,7 @@ import { formatJadwalDatetime } from '../../utils/generateIcs';
 /**
  * RescheduleForm — form ajukan perubahan jadwal oleh peserta
  */
-const RescheduleForm = ({ nomor, penugasan, onClose, onSuccess }) => {
+const RescheduleForm = ({ nomor, verifikasiHp, penugasan, onClose, onSuccess }) => {
   const [slots, setSlots] = useState([]);
   const [jadwalBaruId, setJadwalBaruId] = useState('');
   const [alasan, setAlasan] = useState('');
@@ -36,6 +36,7 @@ const RescheduleForm = ({ nomor, penugasan, onClose, onSuccess }) => {
     try {
       await rescheduleApi.store({
         nomor_pendaftaran: nomor,
+        verifikasi_hp: verifikasiHp,
         penugasan_jadwal_id: penugasan.id,
         jadwal_tes_baru_id: Number(jadwalBaruId),
         alasan,

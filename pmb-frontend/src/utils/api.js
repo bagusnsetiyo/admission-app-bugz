@@ -48,8 +48,15 @@ export const pendaftarApi = {
   /** GET /api/pendaftar — ambil semua pendaftar (perlu token) */
   getAll: () => apiFetch('/pendaftar'),
 
-  /** GET /api/pendaftar/{nomor} — cari berdasarkan nomor pendaftaran */
-  getByNomor: (nomor) => apiFetch(`/pendaftar/${encodeURIComponent(nomor)}`),
+  /** POST /api/pendaftar/cek-status — cek status dengan verifikasi HP */
+  cekStatus: (nomorPendaftaran, verifikasiHp) =>
+    apiFetch('/pendaftar/cek-status', {
+      method: 'POST',
+      body: JSON.stringify({
+        nomor_pendaftaran: nomorPendaftaran,
+        verifikasi_hp: verifikasiHp,
+      }),
+    }),
 
   /** POST /api/pendaftar — daftar baru */
   store: (data) =>
@@ -65,10 +72,11 @@ export const pendaftarApi = {
       body: JSON.stringify({ status }),
     }),
 
-  /** POST /api/pendaftar/{nomor}/heregistrasi — heregistrasi mahasiswa lolos */
-  heregistrasi: (nomor) =>
+  /** POST /api/pendaftar/{nomor}/heregistrasi — heregistrasi dengan verifikasi HP */
+  heregistrasi: (nomor, verifikasiHp) =>
     apiFetch(`/pendaftar/${encodeURIComponent(nomor)}/heregistrasi`, {
       method: 'POST',
+      body: JSON.stringify({ verifikasi_hp: verifikasiHp }),
     }),
 };
 
@@ -88,8 +96,12 @@ export const jadwalApi = {
   /** GET /api/jadwal-tes/tersedia?jenis= — slot tersedia (publik) */
   getTersedia: (jenis) => apiFetch(`/jadwal-tes/tersedia?jenis=${encodeURIComponent(jenis)}`),
 
-  /** GET /api/pendaftar/{nomor}/jadwal — jadwal peserta (publik) */
-  getByNomor: (nomor) => apiFetch(`/pendaftar/${encodeURIComponent(nomor)}/jadwal`),
+  /** POST /api/pendaftar/{nomor}/jadwal — jadwal peserta (wajib verifikasi HP) */
+  getByNomor: (nomor, verifikasiHp) =>
+    apiFetch(`/pendaftar/${encodeURIComponent(nomor)}/jadwal`, {
+      method: 'POST',
+      body: JSON.stringify({ verifikasi_hp: verifikasiHp }),
+    }),
 
   /** POST /api/jadwal-tes — buat slot (admin) */
   store: (data) =>
@@ -120,7 +132,7 @@ export const penugasanApi = {
 };
 
 export const rescheduleApi = {
-  /** POST /api/reschedule — ajukan (publik) */
+  /** POST /api/reschedule — ajukan (wajib verifikasi HP) */
   store: (data) =>
     apiFetch('/reschedule', { method: 'POST', body: JSON.stringify(data) }),
 

@@ -24,9 +24,10 @@ class AdminAuthController extends Controller
             'password' => 'required|string',
         ]);
 
-        $user = User::where('email', $request->username)
-            ->orWhere('name', $request->username)
-            ->first();
+        $user = User::where(function ($query) use ($request) {
+            $query->where('email', $request->username)
+                ->orWhere('name', $request->username);
+        })->first();
 
         if (!$user || !Hash::check($request->password, $user->password)) {
             return response()->json([

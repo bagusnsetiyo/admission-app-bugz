@@ -10,6 +10,7 @@ use App\Models\Pendaftar;
 use App\Models\PenugasanJadwal;
 use App\Models\PermintaanReschedule;
 use App\Services\JadwalHubService;
+use App\Services\PendaftarVerificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -19,16 +20,26 @@ use Illuminate\Support\Facades\DB;
  */
 class RescheduleController extends Controller
 {
-    public function __construct(private JadwalHubService $service) {}
+    public function __construct(
+        private JadwalHubService $service,
+        private PendaftarVerificationService $verification,
+    ) {}
 
     /**
      * POST /api/reschedule — ajukan reschedule (publik)
      */
     public function store(StoreRescheduleRequest $request): JsonResponse
     {
-        $pendaftar = Pendaftar::where('nomor_pendaftaran', $request->nomor_pendaftaran)->first();
+        $pendaftar = $this->verification->findVerified(
+            $request->nomor_pendaftaran,
+            $request->verifikasi_hp
+        );
+
         if (!$pendaftar) {
-            return response()->json(['success' => false, 'message' => 'Nomor pendaftaran tidak ditemukan'], 404);
+            return response()->json([
+                'success' => false,
+                'message' => PendaftarVerificationService::GENERIC_FAIL_MESSAGE,
+            ], 404);
         }
 
         $penugasan = PenugasanJadwal::with('jadwalTes')->find($request->penugasan_jadwal_id);
