@@ -1,7 +1,12 @@
 <?php
 
 use App\Http\Controllers\Api\AdminAuthController;
+use App\Http\Controllers\Api\JadwalTesController;
+use App\Http\Controllers\Api\KehadiranController;
+use App\Http\Controllers\Api\NotifikasiController;
+use App\Http\Controllers\Api\PenugasanJadwalController;
 use App\Http\Controllers\Api\PendaftarController;
+use App\Http\Controllers\Api\RescheduleController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -9,15 +14,24 @@ use Illuminate\Support\Facades\Route;
  * Semua route di bawah prefix /api secara otomatis
  */
 
+$nomorRegex = 'PMB-[0-9]{4}-[0-9]{4}';
+
 // --- Auth ---
 Route::post('/auth/login', [AdminAuthController::class, 'login']);
 
 // --- Publik (tidak butuh auth) ---
 Route::post('/pendaftar', [PendaftarController::class, 'store']);
 Route::get('/pendaftar/{nomorPendaftaran}', [PendaftarController::class, 'show'])
-    ->where('nomorPendaftaran', 'PMB-[0-9]{4}-[0-9]{4}');
+    ->where('nomorPendaftaran', $nomorRegex);
 Route::post('/pendaftar/{nomorPendaftaran}/heregistrasi', [PendaftarController::class, 'heregistrasi'])
-    ->where('nomorPendaftaran', 'PMB-[0-9]{4}-[0-9]{4}');
+    ->where('nomorPendaftaran', $nomorRegex);
+
+// --- JadwalHub publik ---
+Route::get('/pendaftar/{nomorPendaftaran}/jadwal', [JadwalTesController::class, 'byNomorPendaftar'])
+    ->where('nomorPendaftaran', $nomorRegex);
+Route::get('/jadwal-tes/tersedia', [JadwalTesController::class, 'tersedia']);
+Route::post('/reschedule', [RescheduleController::class, 'store']);
+Route::post('/kehadiran/checkin', [KehadiranController::class, 'checkin']);
 
 // --- Admin (butuh Sanctum token) ---
 Route::middleware('auth:sanctum')->group(function () {
@@ -26,4 +40,23 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/pendaftar/{id}/status', [PendaftarController::class, 'updateStatus']);
     Route::get('/statistik', [PendaftarController::class, 'statistik']);
     Route::get('/pendaftar/export/csv', [PendaftarController::class, 'exportCsv']);
+
+    // JadwalHub admin
+    Route::get('/jadwal-tes', [JadwalTesController::class, 'index']);
+    Route::post('/jadwal-tes', [JadwalTesController::class, 'store']);
+    Route::patch('/jadwal-tes/{id}', [JadwalTesController::class, 'update']);
+    Route::delete('/jadwal-tes/{id}', [JadwalTesController::class, 'destroy']);
+    Route::get('/jadwal-tes/{id}/peserta', [JadwalTesController::class, 'peserta']);
+
+    Route::post('/penugasan', [PenugasanJadwalController::class, 'store']);
+    Route::post('/penugasan/auto-batch', [PenugasanJadwalController::class, 'autoBatch']);
+    Route::delete('/penugasan/{id}', [PenugasanJadwalController::class, 'destroy']);
+
+    Route::get('/reschedule', [RescheduleController::class, 'index']);
+    Route::patch('/reschedule/{id}', [RescheduleController::class, 'process']);
+
+    Route::get('/kehadiran/sesi/{jadwalTesId}', [KehadiranController::class, 'sesi']);
+
+    Route::get('/notifikasi', [NotifikasiController::class, 'index']);
+    Route::patch('/notifikasi/{id}/baca', [NotifikasiController::class, 'markRead']);
 });

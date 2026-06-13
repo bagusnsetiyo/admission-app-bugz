@@ -1,7 +1,10 @@
 import { useState, useEffect } from 'react';
 import AdminLogin from '../components/pmb/AdminLogin';
 import TabelPendaftar from '../components/pmb/TabelPendaftar';
-import { pendaftarApi, statistikApi, authApi, removeToken, getToken, getExportCsvUrl } from '../utils/api';
+import JadwalTesForm from '../components/pmb/JadwalTesForm';
+import JadwalTesTable from '../components/pmb/JadwalTesTable';
+import RescheduleInbox from '../components/pmb/RescheduleInbox';
+import { pendaftarApi, statistikApi, authApi, jadwalApi, removeToken, getToken, getExportCsvUrl } from '../utils/api';
 import { STATUS_LIST } from '../constants';
 
 /**
@@ -14,6 +17,8 @@ const Admin = () => {
   const [statistik, setStatistik] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [activeTab, setActiveTab] = useState('pendaftar');
+  const [jadwalList, setJadwalList] = useState([]);
 
   // Cek sesi yang sudah ada saat komponen dimuat
   useEffect(() => {
@@ -45,6 +50,19 @@ const Admin = () => {
       }
     };
     fetchAll();
+  }, [isLoggedIn]);
+
+  const fetchJadwal = async () => {
+    try {
+      const res = await jadwalApi.getAll();
+      setJadwalList(res.data);
+    } catch {
+      // Abaikan — tab jadwal opsional
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) fetchJadwal();
   }, [isLoggedIn]);
 
   const handleLogout = async () => {
@@ -131,6 +149,12 @@ const Admin = () => {
               Export CSV
             </button>
             <a
+              href="/operator"
+              className="text-sm text-slate-500 hover:text-slate-700 transition-colors hidden sm:block"
+            >
+              Operator
+            </a>
+            <a
               href="/"
               className="text-sm text-slate-500 hover:text-slate-700 transition-colors hidden sm:block"
             >
@@ -147,6 +171,28 @@ const Admin = () => {
       </header>
 
       <div className="max-w-6xl mx-auto px-4 py-6 space-y-6">
+        {/* Tab switcher */}
+        <div className="flex gap-1 bg-white border border-slate-200 rounded-xl p-1 w-fit">
+          {[
+            { id: 'pendaftar', label: 'Pendaftar' },
+            { id: 'jadwal', label: 'Jadwal Tes' },
+          ].map((tab) => (
+            <button
+              key={tab.id}
+              onClick={() => setActiveTab(tab.id)}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors min-h-[44px] ${
+                activeTab === tab.id
+                  ? 'bg-[#1a56db] text-white'
+                  : 'text-slate-600 hover:bg-slate-50'
+              }`}
+            >
+              {tab.label}
+            </button>
+          ))}
+        </div>
+
+        {activeTab === 'pendaftar' && (
+        <>
         {/* Stat cards — status */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <div className="bg-white border border-slate-200 rounded-xl p-4">
@@ -230,6 +276,20 @@ const Admin = () => {
             <TabelPendaftar pendaftarList={pendaftarList} onUpdateStatus={handleUpdateStatus} />
           )}
         </div>
+        </>
+        )}
+
+        {activeTab === 'jadwal' && (
+          <div className="space-y-6">
+            <JadwalTesForm onSuccess={fetchJadwal} />
+            <JadwalTesTable
+              jadwalList={jadwalList}
+              pendaftarList={pendaftarList}
+              onRefresh={fetchJadwal}
+            />
+            <RescheduleInbox />
+          </div>
+        )}
       </div>
     </div>
   );

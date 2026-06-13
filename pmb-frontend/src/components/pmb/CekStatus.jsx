@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import Button from '../ui/Button';
 import StatusBadge from './StatusBadge';
+import JadwalPanel from './JadwalPanel';
 import { pendaftarApi } from '../../utils/api';
 
 /**
@@ -143,6 +144,8 @@ const CekStatus = () => {
               Maaf, Anda belum lolos seleksi periode ini. Terima kasih sudah mendaftar.
             </p>
           )}
+
+          <JadwalPanel nomor={result.nomor_pendaftaran} />
         </div>
       )}
     </div>

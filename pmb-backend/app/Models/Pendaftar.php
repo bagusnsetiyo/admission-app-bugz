@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Model Pendaftar — merepresentasikan satu data calon mahasiswa PMB
@@ -34,4 +35,9 @@ class Pendaftar extends Model
     protected $casts = [
         'heregistrasi_at' => 'datetime',
     ];
+
+    public function penugasanJadwal(): HasMany
+    {
+        return $this->hasMany(PenugasanJadwal::class, 'pendaftar_id');
+    }
 }
