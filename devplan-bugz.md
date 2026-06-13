@@ -1,5 +1,5 @@
 # Development Plan — Modul Penjadwalan Tes PMB
-## bugz-best-devplan.md
+## devplan-bugz.md
 ### Vibe Coding & Venture SEVIMA | Pengembangan Lanjutan Aplikasi PMB
 ### Author: Bugz | Tema: Digitalisasi Jadwal Tes & Wawancara + Smart Check-in
 
@@ -9,7 +9,7 @@
 
 ---
 
-## BAGIAN 1 — Analisa Teknis (20 poin)
+## BAGIAN 1 — Analisa Teknis
 
 ### 1.1 Identifikasi Pengguna
 
@@ -75,7 +75,7 @@
 
 ---
 
-## BAGIAN 2 — Bisnis Proses & Flow (25 poin)
+## BAGIAN 2 — Bisnis Proses & Flow
 
 ### 2.1 Flow Utama: Penjadwalan Tes Seleksi
 
@@ -194,7 +194,7 @@
 
 ---
 
-## BAGIAN 3 — Alur Data (20 poin)
+## BAGIAN 3 — Alur Data
 
 ### 3.1 Alur Data: Proses Penjadwalan
 
@@ -237,7 +237,7 @@
 
 ---
 
-## BAGIAN 4 — ERD / Desain Database (25 poin)
+## BAGIAN 4 — ERD / Desain Database
 
 ### 4.1 Daftar Tabel
 
@@ -369,7 +369,7 @@ Keterangan: Audit trail admin yang approve/reject reschedule.
 
 ---
 
-## BAGIAN 5 — Prompt Siap Pakai untuk AI (10 poin)
+## BAGIAN 5 — Prompt Siap Pakai untuk AI
 
 Copy prompt di bawah ini **utuh** ke Claude/Cursor untuk generate kode modul JadwalHub.
 
@@ -503,7 +503,7 @@ FRONTEND — tambahkan (jangan refactor file existing, hanya extend):
 
 ---
 
-## BAGIAN 6 — Jalankan Prompt & Evaluasi Hasil ⭐ Bonus (+20 poin)
+## BAGIAN 6 — Jalankan Prompt & Evaluasi Hasil
 
 ### 6.1 Review Kompatibilitas Pre-Implementation (Prompt Belum Dijalankan)
 
@@ -607,7 +607,7 @@ Plan ini **layak diimplementasikan tanpa regresi** karena:
 
 **Gap yang disengaja (out-of-scope prototype):** Email/WhatsApp reminder, multi-operator role management, integrasi SIAKAD — sesuai PRD section 7.
 
-### 6.3 Instruksi Post-Implementasi (untuk melengkapi Bonus)
+### 6.3 Instruksi Post-Implementasi
 
 Setelah menjalankan prompt Bagian 5, buat `README-app.md` di root repo:
 
@@ -647,4 +647,4 @@ pendaftars ──────< notifikasi_log
 
 ---
 
-*File: `bugz-best-devplan.md` | Vibe Coding & Venture SEVIMA | Semua bagian 1–6 terisi*
+*File: `devplan-bugz.md` | Vibe Coding & Venture SEVIMA | Bagus Setiyo N*
